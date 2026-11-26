@@ -1,241 +1,494 @@
 
 import java.io.*;
-import java.time.*;
+import java.util.*;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class StudentAttendanceSystem {
 
     static Scanner sc = new Scanner(System.in);
 
-    static final String STUDENTS = "students.txt";
-    static final String ATTENDANCE = "attendance.txt";
+    static String STUDENT_FILE = "students.txt";
+    static String ATTENDANCE_FILE = "attendance.txt";
 
     public static void main(String[] args) {
 
         createFiles();
 
         while (true) {
+
             System.out.println("\n================================");
             System.out.println(" STUDENT ATTENDANCE SYSTEM");
             System.out.println("================================");
             System.out.println("1. Admin Login");
             System.out.println("2. Student Attendance");
             System.out.println("3. Exit");
-            System.out.print("Choose: ");
+            System.out.print("Enter choice: ");
 
             String choice = sc.nextLine();
 
             switch (choice) {
+
                 case "1":
-                    login();
+                    adminLogin();
                     break;
+
                 case "2":
-                    attendance();
+                    studentAttendance();
                     break;
+
                 case "3":
-                    System.out.println("Thank you!");
+                    System.out.println("Thank you for using the system!");
                     return;
+
                 default:
                     System.out.println("Invalid choice!");
             }
         }
     }
 
-    static void createFiles() {
+    // CREATE FILES
+    public static void createFiles() {
         try {
-            new File(STUDENTS).createNewFile();
-            new File(ATTENDANCE).createNewFile();
+            File students = new File(STUDENT_FILE);
+            File attendance = new File(ATTENDANCE_FILE);
+
+            students.createNewFile();
+            attendance.createNewFile();
+
         } catch (IOException e) {
-            System.out.println("File error!");
+            System.out.println("Error creating files: " + e.getMessage());
         }
     }
 
-    static void login() {
+    // ADMIN LOGIN
+    public static void adminLogin() {
+
+        System.out.println("\n===== ADMIN LOGIN =====");
+
         System.out.print("Username: ");
-        String user = sc.nextLine();
+        String username = sc.nextLine();
 
         System.out.print("Password: ");
-        String pass = sc.nextLine();
+        String password = sc.nextLine();
 
-        if (user.equals("admin") && pass.equals("admin123")) {
+        if (username.equals("admin") &&
+            password.equals("admin123")) {
+
+            System.out.println("Login successful!");
             adminMenu();
+
         } else {
-            System.out.println("Invalid login!");
+            System.out.println("Invalid username or password!");
         }
     }
 
-    static void adminMenu() {
+    // ADMIN MENU
+    public static void adminMenu() {
+
         while (true) {
-            System.out.println("\n========== ADMIN DASHBOARD ==========");
+
+            System.out.println("\n================================");
+            System.out.println("          ADMIN MENU");
+            System.out.println("================================");
             System.out.println("1. Register Student");
-            System.out.println("2. View Students");
-            System.out.println("3. View Attendance");
-            System.out.println("4. Search Attendance");
-            System.out.println("5. Logout");
-            System.out.print("Choose: ");
+            System.out.println("2. View Registered Students");
+            System.out.println("3. Delete Student");
+            System.out.println("4. View Attendance Records");
+            System.out.println("5. Search Student Attendance");
+            System.out.println("6. Logout");
+            System.out.print("Enter choice: ");
 
             String choice = sc.nextLine();
 
             switch (choice) {
-                case "1": registerStudent(); break;
-                case "2": viewStudents(); break;
-                case "3": viewAttendance(null); break;
-                case "4":
-                    System.out.print("Enter Student ID: ");
-                    viewAttendance(sc.nextLine().trim());
+
+                case "1":
+                    registerStudent();
                     break;
-                case "5": return;
-                default: System.out.println("Invalid choice!");
+
+                case "2":
+                    viewStudents();
+                    break;
+
+                case "3":
+                    deleteStudent();
+                    break;
+
+                case "4":
+                    viewAttendance();
+                    break;
+
+                case "5":
+                    searchAttendance();
+                    break;
+
+                case "6":
+                    System.out.println("Admin logged out!");
+                    return;
+
+                default:
+                    System.out.println("Invalid choice!");
             }
         }
     }
 
-    static void registerStudent() {
-        System.out.print("Student ID: ");
-        String id = sc.nextLine().trim();
+    // REGISTER STUDENT
+    public static void registerStudent() {
 
-        if (id.isEmpty() || id.contains("|") || findStudent(id) != null) {
-            System.out.println("Invalid or existing Student ID!");
+        System.out.println("\n===== REGISTER STUDENT =====");
+
+        System.out.print("Enter Student ID: ");
+        String id = sc.nextLine();
+
+        if (id.isEmpty() || id.contains("|")) {
+            System.out.println("Invalid Student ID!");
             return;
         }
 
-        System.out.print("Student Name: ");
-        String name = sc.nextLine().trim();
-
-        System.out.print("Course: ");
-        String course = sc.nextLine().trim();
-
-        System.out.print("Year Level: ");
-        String year = sc.nextLine().trim();
-
-        if (name.isEmpty() || course.isEmpty() || year.isEmpty()
-                || name.contains("|") || course.contains("|")
-                || year.contains("|")) {
-            System.out.println("Invalid information!");
+        if (studentExists(id)) {
+            System.out.println("Student ID already exists!");
             return;
         }
 
-        try (FileWriter fw = new FileWriter(STUDENTS, true)) {
-            fw.write(id + "|" + name + "|" + course + "|" + year
-                    + System.lineSeparator());
+        System.out.print("Enter Student Name: ");
+        String name = sc.nextLine();
+
+        System.out.print("Enter Course: ");
+        String course = sc.nextLine();
+
+        System.out.print("Enter Year Level: ");
+        String year = sc.nextLine();
+
+        if (name.isEmpty() || course.isEmpty() ||
+            year.isEmpty() || name.contains("|") ||
+            course.contains("|") || year.contains("|")) {
+
+            System.out.println("Invalid student information!");
+            return;
+        }
+
+        try (FileWriter fw = new FileWriter(STUDENT_FILE, true);
+             PrintWriter pw = new PrintWriter(fw)) {
+
+            pw.println(id + "|" + name + "|" + course + "|" + year);
+
             System.out.println("Student registered successfully!");
+
         } catch (IOException e) {
-            System.out.println("Unable to save student!");
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
-    static String findStudent(String id) {
-        try (BufferedReader br = new BufferedReader(new FileReader(STUDENTS))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split("\\|", -1);
-                if (data.length == 4 && data[0].equalsIgnoreCase(id)) {
+    // CHECK IF STUDENT EXISTS
+    public static boolean studentExists(String id) {
+
+        try (Scanner reader = new Scanner(new File(STUDENT_FILE))) {
+
+            while (reader.hasNextLine()) {
+
+                String[] data = reader.nextLine().split("\\|", -1);
+
+                if (data.length >= 4 &&
+                    data[0].equalsIgnoreCase(id)) {
+                    return true;
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error reading student records.");
+        }
+
+        return false;
+    }
+
+    // GET STUDENT NAME
+    public static String getStudentName(String id) {
+
+        try (Scanner reader = new Scanner(new File(STUDENT_FILE))) {
+
+            while (reader.hasNextLine()) {
+
+                String[] data = reader.nextLine().split("\\|", -1);
+
+                if (data.length >= 4 &&
+                    data[0].equalsIgnoreCase(id)) {
                     return data[1];
                 }
             }
+
         } catch (IOException e) {
-            System.out.println("Read error!");
+            System.out.println("Error reading student records.");
         }
+
         return null;
     }
 
-    static void viewStudents() {
-        System.out.println("\n========== STUDENT LIST ==========");
-        try (BufferedReader br = new BufferedReader(new FileReader(STUDENTS))) {
-            String line;
-            while ((line = br.readLine()) != null) {
+    // VIEW STUDENTS
+    public static void viewStudents() {
+
+        System.out.println("\n===== REGISTERED STUDENTS =====");
+
+        boolean found = false;
+
+        try (Scanner reader = new Scanner(new File(STUDENT_FILE))) {
+
+            while (reader.hasNextLine()) {
+
+                String line = reader.nextLine();
+
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
                 String[] data = line.split("\\|", -1);
-                if (data.length == 4) {
-                    System.out.println("ID: " + data[0]);
+
+                if (data.length >= 4) {
+
+                    System.out.println("----------------------------");
+                    System.out.println("Student ID: " + data[0]);
                     System.out.println("Name: " + data[1]);
                     System.out.println("Course: " + data[2]);
-                    System.out.println("Year: " + data[3]);
-                    System.out.println("--------------------------------");
+                    System.out.println("Year Level: " + data[3]);
+
+                    found = true;
                 }
             }
+
+            if (!found) {
+                System.out.println("No student records found.");
+            }
+
         } catch (IOException e) {
-            System.out.println("Read error!");
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
-    static void attendance() {
-        System.out.println("\n========== STUDENT ATTENDANCE ==========");
-        System.out.print("Enter Student ID: ");
-        String id = sc.nextLine().trim();
+    // DELETE STUDENT
+    public static void deleteStudent() {
 
-        String name = findStudent(id);
+        System.out.println("\n===== DELETE STUDENT =====");
 
-        if (name == null) {
-            System.out.println("Student not found!");
+        System.out.print("Enter Student ID to delete: ");
+        String id = sc.nextLine();
+
+        if (!studentExists(id)) {
+            System.out.println("Student ID not found!");
             return;
         }
 
-        String now = LocalDateTime.now().format(
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String name = getStudentName(id);
 
-        String today = LocalDate.now().toString();
+        System.out.println("Student Name: " + name);
 
-        if (alreadyRecorded(id, today)) {
+        System.out.print("Are you sure you want to delete? (Y/N): ");
+        String confirm = sc.nextLine();
+
+        if (!confirm.equalsIgnoreCase("Y")) {
+            System.out.println("Delete cancelled.");
+            return;
+        }
+
+        File original = new File(STUDENT_FILE);
+        File temporary = new File("students_temp.txt");
+
+        boolean deleted = false;
+
+        try (Scanner reader = new Scanner(original);
+             PrintWriter writer = new PrintWriter(temporary)) {
+
+            while (reader.hasNextLine()) {
+
+                String line = reader.nextLine();
+                String[] data = line.split("\\|", -1);
+
+                if (data.length >= 4 &&
+                    data[0].equalsIgnoreCase(id)) {
+
+                    deleted = true;
+                    continue;
+                }
+
+                writer.println(line);
+            }
+
+        } catch (IOException e) {
+            temporary.delete();
+            System.out.println("Error: " + e.getMessage());
+            return;
+        }
+
+        try {
+
+            if (deleted) {
+
+                Files.move(
+                    temporary.toPath(),
+                    original.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+                );
+
+                System.out.println("Student deleted successfully!");
+
+            } else {
+                temporary.delete();
+                System.out.println("Student not found!");
+            }
+
+        } catch (IOException e) {
+            temporary.delete();
+            System.out.println("Unable to update student records: "
+                               + e.getMessage());
+        }
+    }
+
+    // STUDENT ATTENDANCE
+    public static void studentAttendance() {
+
+        System.out.println("\n===== STUDENT ATTENDANCE =====");
+
+        System.out.print("Enter Student ID: ");
+        String id = sc.nextLine();
+
+        String name = getStudentName(id);
+
+        if (name == null) {
+            System.out.println("Student ID not registered!");
+            return;
+        }
+
+        if (alreadyRecorded(id)) {
             System.out.println("Attendance already recorded today!");
             return;
         }
 
-        try (FileWriter fw = new FileWriter(ATTENDANCE, true)) {
-            fw.write(now + "|" + id + "|" + name + "|PRESENT"
-                    + System.lineSeparator());
+        LocalDateTime now = LocalDateTime.now();
 
-            System.out.println("\nATTENDANCE SUCCESSFUL!");
-            System.out.println("Student ID: " + id);
-            System.out.println("Name: " + name);
-            System.out.println("Date: " + now);
+        DateTimeFormatter formatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        String date = now.format(formatter);
+
+        try (FileWriter fw = new FileWriter(ATTENDANCE_FILE, true);
+             PrintWriter pw = new PrintWriter(fw)) {
+
+            pw.println(date + "|" + id + "|" + name + "|PRESENT");
+
+            System.out.println("Attendance recorded successfully!");
+            System.out.println("Student Name: " + name);
             System.out.println("Status: PRESENT");
+            System.out.println("Date and Time: " + date);
+
         } catch (IOException e) {
-            System.out.println("Attendance error!");
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
-    static boolean alreadyRecorded(String id, String date) {
-        try (BufferedReader br = new BufferedReader(new FileReader(ATTENDANCE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split("\\|", -1);
-                if (data.length == 4 &&
-                    data[0].startsWith(date) &&
+    // CHECK IF ATTENDANCE ALREADY RECORDED TODAY
+    public static boolean alreadyRecorded(String id) {
+
+        String today = java.time.LocalDate.now().toString();
+
+        try (Scanner reader = new Scanner(new File(ATTENDANCE_FILE))) {
+
+            while (reader.hasNextLine()) {
+
+                String[] data = reader.nextLine().split("\\|", -1);
+
+                if (data.length >= 4 &&
+                    data[0].startsWith(today) &&
                     data[1].equalsIgnoreCase(id)) {
+
                     return true;
                 }
             }
+
         } catch (IOException e) {
-            System.out.println("Read error!");
+            System.out.println("Error checking attendance.");
         }
+
         return false;
     }
 
-    static void viewAttendance(String searchID) {
-        System.out.println("\n========== ATTENDANCE RECORDS ==========");
+    // VIEW ATTENDANCE RECORDS
+    public static void viewAttendance() {
+
+        System.out.println("\n===== ATTENDANCE RECORDS =====");
+
         boolean found = false;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(ATTENDANCE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
+        try (Scanner reader = new Scanner(new File(ATTENDANCE_FILE))) {
+
+            while (reader.hasNextLine()) {
+
+                String line = reader.nextLine();
+
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
                 String[] data = line.split("\\|", -1);
-                if (data.length == 4 &&
-                    (searchID == null || data[1].equalsIgnoreCase(searchID))) {
-                    System.out.println("Date: " + data[0]);
-                    System.out.println("ID: " + data[1]);
-                    System.out.println("Name: " + data[2]);
+
+                if (data.length >= 4) {
+
+                    System.out.println("----------------------------");
+                    System.out.println("Date and Time: " + data[0]);
+                    System.out.println("Student ID: " + data[1]);
+                    System.out.println("Student Name: " + data[2]);
                     System.out.println("Status: " + data[3]);
-                    System.out.println("--------------------------------");
+
                     found = true;
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Read error!");
-        }
 
-        if (!found) {
-            System.out.println("No attendance records found.");
+            if (!found) {
+                System.out.println("No attendance records found.");
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    // SEARCH STUDENT ATTENDANCE
+    public static void searchAttendance() {
+
+        System.out.println("\n===== SEARCH ATTENDANCE =====");
+
+        System.out.print("Enter Student ID: ");
+        String id = sc.nextLine();
+
+        boolean found = false;
+
+        try (Scanner reader = new Scanner(new File(ATTENDANCE_FILE))) {
+
+            while (reader.hasNextLine()) {
+
+                String line = reader.nextLine();
+
+                String[] data = line.split("\\|", -1);
+
+                if (data.length >= 4 &&
+                    data[1].equalsIgnoreCase(id)) {
+
+                    System.out.println("----------------------------");
+                    System.out.println("Date and Time: " + data[0]);
+                    System.out.println("Student ID: " + data[1]);
+                    System.out.println("Student Name: " + data[2]);
+                    System.out.println("Status: " + data[3]);
+
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                System.out.println("No attendance records found for this ID.");
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 }
