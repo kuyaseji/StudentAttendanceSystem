@@ -49,7 +49,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // CREATE FILES
+    // create files
     public static void createFiles() {
         try {
             File students = new File(STUDENT_FILE);
@@ -63,7 +63,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // ADMIN LOGIN
+    // admin log in
     public static void adminLogin() {
 
         System.out.println("\n===== ADMIN LOGIN =====");
@@ -85,7 +85,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // ADMIN MENU
+    // admin style
     public static void adminMenu() {
 
         while (true) {
@@ -135,7 +135,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // REGISTER STUDENT
+    // register studeents
     public static void registerStudent() {
 
         System.out.println("\n===== REGISTER STUDENT =====");
@@ -182,7 +182,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // CHECK IF STUDENT EXISTS
+    // check if students exist
     public static boolean studentExists(String id) {
 
         try (Scanner reader = new Scanner(new File(STUDENT_FILE))) {
@@ -204,7 +204,7 @@ public class StudentAttendanceSystem {
         return false;
     }
 
-    // GET STUDENT NAME
+    // get student name
     public static String getStudentName(String id) {
 
         try (Scanner reader = new Scanner(new File(STUDENT_FILE))) {
@@ -226,7 +226,7 @@ public class StudentAttendanceSystem {
         return null;
     }
 
-    // VIEW STUDENTS
+    // view student
     public static void viewStudents() {
 
         System.out.println("\n===== REGISTERED STUDENTS =====");
@@ -266,7 +266,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // DELETE STUDENT
+    // delete
     public static void deleteStudent() {
 
         System.out.println("\n===== DELETE STUDENT =====");
@@ -344,7 +344,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // STUDENT ATTENDANCE
+    // attendance
     public static void studentAttendance() {
 
         System.out.println("\n===== STUDENT ATTENDANCE =====");
@@ -386,7 +386,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // CHECK IF ATTENDANCE ALREADY RECORDED TODAY
+    // attendance record today
     public static boolean alreadyRecorded(String id) {
 
         String today = java.time.LocalDate.now().toString();
@@ -412,7 +412,7 @@ public class StudentAttendanceSystem {
         return false;
     }
 
-    // VIEW ATTENDANCE RECORDS
+    //view attendance
     public static void viewAttendance() {
 
         System.out.println("\n===== ATTENDANCE RECORDS =====");
@@ -452,7 +452,7 @@ public class StudentAttendanceSystem {
         }
     }
 
-    // SEARCH STUDENT ATTENDANCE
+    // search student
     public static void searchAttendance() {
 
         System.out.println("\n===== SEARCH ATTENDANCE =====");
@@ -465,6 +465,7 @@ public class StudentAttendanceSystem {
         try (Scanner reader = new Scanner(new File(ATTENDANCE_FILE))) {
 
             while (reader.hasNextLine()) {
+                
 
                 String line = reader.nextLine();
 
